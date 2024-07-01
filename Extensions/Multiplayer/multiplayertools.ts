@@ -6,7 +6,7 @@ namespace gdjs {
 
     let _isGameRegistered: boolean | null = null;
     let _isCheckingIfGameIsRegistered = false;
-    let _isWaitingForLoginCallback = false;
+    let _isWaitingForLogin = false;
 
     let _hasLobbyGameJustStarted = false;
     export let _isLobbyGameRunning = false;
@@ -407,15 +407,17 @@ namespace gdjs {
         // When socket is open, ask for the connectionId and send more session info, so that we can inform the lobbies window.
         if (_websocket) {
           _websocket.send(JSON.stringify({ action: 'getConnectionId' }));
-          const plarformInfo = runtimeScene.getGame().getPlatformInfo();
+          const platformInfo = runtimeScene.getGame().getPlatformInfo();
           _websocket.send(
             JSON.stringify({
               action: 'sessionInformation',
               connectionType: 'lobby',
-              isCordova: plarformInfo.isCordova,
-              devicePlatform: plarformInfo.devicePlatform,
-              navigatorPlatform: plarformInfo.navigatorPlatform,
-              hasTouch: plarformInfo.hasTouch,
+              isCordova: platformInfo.isCordova,
+              devicePlatform: platformInfo.devicePlatform,
+              navigatorPlatform: platformInfo.navigatorPlatform,
+              hasTouch: platformInfo.hasTouch,
+              supportedCompressionMethods:
+                platformInfo.supportedCompressionMethods,
             })
           );
         }
@@ -465,7 +467,9 @@ namespace gdjs {
               break;
             }
             case 'gameCountdownStarted': {
-              handleGameCountdownStartedEvent(runtimeScene);
+              const messageData = messageContent.data;
+              const compressionMethod = messageData.compressionMethod || 'none';
+              handleGameCountdownStartedEvent(runtimeScene, compressionMethod);
               break;
             }
             case 'gameStarted': {
@@ -562,7 +566,7 @@ namespace gdjs {
       // When the connectionId is received, initialise PeerJS so players can connect to each others afterwards.
       if (validIceServers.length) {
         for (const server of validIceServers) {
-          gdjs.evtTools.p2p.useCustomICECandidate(
+          gdjs.multiplayerPeerJsHelper.useCustomICECandidate(
             server.urls,
             server.username,
             server.credential
@@ -570,7 +574,7 @@ namespace gdjs {
         }
       }
       if (brokerServerConfig) {
-        gdjs.evtTools.p2p.useCustomBrokerServer(
+        gdjs.multiplayerPeerJsHelper.useCustomBrokerServer(
           brokerServerConfig.hostname,
           brokerServerConfig.port,
           brokerServerConfig.path,
@@ -578,7 +582,7 @@ namespace gdjs {
           brokerServerConfig.secure
         );
       } else {
-        gdjs.evtTools.p2p.useDefaultBrokerServer();
+        gdjs.multiplayerPeerJsHelper.useDefaultBrokerServer();
       }
 
       _connectionId = connectionId;
@@ -664,8 +668,11 @@ namespace gdjs {
     };
 
     const handleGameCountdownStartedEvent = function (
-      runtimeScene: gdjs.RuntimeScene
+      runtimeScene: gdjs.RuntimeScene,
+      compressionMethod: gdjs.multiplayerPeerJsHelper.CompressionMethod
     ) {
+      gdjs.multiplayerPeerJsHelper.setCompressionMethod(compressionMethod);
+
       // When the countdown starts, if we are player number 1, then send the peerId to others so they can connect via P2P.
       if (getCurrentPlayerNumber() === 1) {
         sendPeerId();
@@ -705,7 +712,7 @@ namespace gdjs {
       // It is possible the connection to other players didn't work.
       // If that's the case, show an error message and leave the lobby.
       // If we are the host, still start the game, as this allows a player to test the game alone.
-      const allConnectedPeers = gdjs.evtTools.p2p.getAllPeers();
+      const allConnectedPeers = gdjs.multiplayerPeerJsHelper.getAllPeers();
       if (!isPlayerHost() && allConnectedPeers.length === 0) {
         gdjs.multiplayerComponents.displayConnectionErrorNotification(
           runtimeScene
@@ -775,7 +782,7 @@ namespace gdjs {
       }
 
       // Disconnect from any P2P connections.
-      gdjs.evtTools.p2p.disconnectFromAllPeers();
+      gdjs.multiplayerPeerJsHelper.disconnectFromAllPeers();
 
       // Clear the expected acknowledgments, as the game is ending.
       gdjs.multiplayerMessageManager.clearExpectedMessageAcknowledgements();
@@ -787,7 +794,7 @@ namespace gdjs {
      */
     const handlePeerIdEvent = function (peerId: string) {
       // When a peerId is received, trigger a P2P connection with the peer.
-      const currentPeerId = gdjs.evtTools.p2p.getCurrentId();
+      const currentPeerId = gdjs.multiplayerPeerJsHelper.getCurrentId();
       if (!currentPeerId) {
         logger.error(
           'No peerId found, the player does not seem connected to the broker server.'
@@ -800,7 +807,7 @@ namespace gdjs {
         return;
       }
 
-      gdjs.evtTools.p2p.connect(peerId);
+      gdjs.multiplayerPeerJsHelper.connect(peerId);
     };
 
     /**
@@ -862,6 +869,8 @@ namespace gdjs {
       // Consider the game is ended, so that we don't listen to other players disconnecting.
       _isLobbyGameRunning = false;
 
+      logger.info('Ending the lobby game.');
+
       // Inform the players that the game has ended.
       gdjs.multiplayerMessageManager.sendEndGameMessage();
 
@@ -912,7 +921,7 @@ namespace gdjs {
         return;
       }
 
-      const peerId = gdjs.evtTools.p2p.getCurrentId();
+      const peerId = gdjs.multiplayerPeerJsHelper.getCurrentId();
       if (!peerId) {
         logger.error(
           "No peerId found, the player doesn't seem connected to the broker server."
@@ -1064,7 +1073,7 @@ namespace gdjs {
         return;
       }
 
-      if (_isCheckingIfGameIsRegistered || _isWaitingForLoginCallback) {
+      if (_isCheckingIfGameIsRegistered || _isWaitingForLogin) {
         // The action is called multiple times, let's prevent that.
         return;
       }
@@ -1089,13 +1098,13 @@ namespace gdjs {
       const playerId = gdjs.playerAuthentication.getUserId();
       const playerToken = gdjs.playerAuthentication.getUserToken();
       if (!playerId || !playerToken) {
-        _isWaitingForLoginCallback = true;
+        _isWaitingForLogin = true;
         const {
           status,
         } = await gdjs.playerAuthentication.openAuthenticationWindow(
           runtimeScene
         ).promise;
-        _isWaitingForLoginCallback = false;
+        _isWaitingForLogin = false;
 
         if (status === 'logged') {
           openLobbiesWindow(runtimeScene);

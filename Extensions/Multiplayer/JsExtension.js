@@ -46,8 +46,8 @@ module.exports = {
       .addCodeOnlyParameter('currentScene', '')
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -74,8 +74,8 @@ module.exports = {
       .addParameter('yesorno', _('Show close button'), '', false)
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -102,8 +102,8 @@ module.exports = {
       )
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -132,8 +132,8 @@ module.exports = {
       .addParameter('string', _('Message name'), '', false)
       .addParameter('string', _('Message content'), '', false)
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -144,7 +144,71 @@ module.exports = {
       .addIncludeFile('Extensions/Multiplayer/messageManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
-      .setFunctionName('gdjs.multiplayerMessageManager.sendMessage');
+      .setFunctionName('gdjs.multiplayerMessageManager.sendCustomMessage');
+
+    extension
+      .addAction(
+        'SendVariableMessage',
+        _('Send custom message to other players with a variable'),
+        _(
+          "Send a custom message to other players in the lobby containing a variable, with an automatic retry system if it hasn't been received. Use with the condition 'Message has been received' to know when the message has been properly processed by the host."
+        ),
+        _('Send message _PARAM0_ to other players with variable _PARAM1_'),
+        _('Advanced'),
+        'JsPlatform/Extensions/multiplayer.svg',
+        'JsPlatform/Extensions/multiplayer.svg'
+      )
+      .setHelpPath('/all-features/multiplayer')
+      .addParameter('string', _('Message name'), '', false)
+      .addParameter('variable', _('Variable'), '', false)
+      .getCodeExtraInformation()
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
+      )
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationtools.js'
+      )
+      .addIncludeFile('Extensions/Multiplayer/multiplayercomponents.js')
+      .addIncludeFile('Extensions/Multiplayer/messageManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
+      .setFunctionName(
+        'gdjs.multiplayerMessageManager.sendVariableCustomMessage'
+      );
+
+    extension
+      .addAction(
+        'GetMessageVariable',
+        _('Get message variable'),
+        _(
+          "Store the data of the specified message in a variable. Use with the condition 'Message has been received' to know when the message has been properly processed by the host."
+        ),
+        _('Save message _PARAM0_ data in _PARAM1_'),
+        _('Advanced'),
+        'JsPlatform/Extensions/multiplayer.svg',
+        'JsPlatform/Extensions/multiplayer.svg'
+      )
+      .setHelpPath('/all-features/multiplayer')
+      .addParameter('string', _('Message name'), '', false)
+      .addParameter('variable', _('Variable'), '', false)
+      .getCodeExtraInformation()
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
+      )
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationtools.js'
+      )
+      .addIncludeFile('Extensions/Multiplayer/multiplayercomponents.js')
+      .addIncludeFile('Extensions/Multiplayer/messageManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
+      .setFunctionName(
+        'gdjs.multiplayerMessageManager.getVariableCustomMessageData'
+      );
 
     extension
       .addCondition(
@@ -158,8 +222,8 @@ module.exports = {
       )
       .addCodeOnlyParameter('currentScene', '')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -183,8 +247,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -208,8 +272,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -233,8 +297,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -261,8 +325,8 @@ module.exports = {
       )
       .addParameter('string', _('Message name'), '', false)
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -273,7 +337,9 @@ module.exports = {
       .addIncludeFile('Extensions/Multiplayer/messageManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
-      .setFunctionName('gdjs.multiplayerMessageManager.hasMessageBeenReceived');
+      .setFunctionName(
+        'gdjs.multiplayerMessageManager.hasCustomMessageBeenReceived'
+      );
 
     extension
       .addCondition(
@@ -286,8 +352,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -311,8 +377,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -337,8 +403,8 @@ module.exports = {
       )
       .getCodeExtraInformation()
       .addParameter('number', _('Player number'), '', false)
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -363,8 +429,8 @@ module.exports = {
       )
       .addParameter('string', _('Message name'), '', false)
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -375,7 +441,31 @@ module.exports = {
       .addIncludeFile('Extensions/Multiplayer/messageManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
       .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
-      .setFunctionName('gdjs.multiplayerMessageManager.getMessageData');
+      .setFunctionName('gdjs.multiplayerMessageManager.getCustomMessageData');
+
+    extension
+      .addExpression(
+        'MessageSender',
+        _('Message sender'),
+        _('Returns the player number of the sender of the specified message.'),
+        _('Advanced'),
+        'JsPlatform/Extensions/multiplayer.svg'
+      )
+      .addParameter('string', _('Message name'), '', false)
+      .getCodeExtraInformation()
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
+      )
+      .addIncludeFile(
+        'Extensions/PlayerAuthentication/playerauthenticationtools.js'
+      )
+      .addIncludeFile('Extensions/Multiplayer/multiplayercomponents.js')
+      .addIncludeFile('Extensions/Multiplayer/messageManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayerVariablesManager.js')
+      .addIncludeFile('Extensions/Multiplayer/multiplayertools.js')
+      .setFunctionName('gdjs.multiplayerMessageManager.getCustomMessageSender');
 
     extension
       .addExpressionAndCondition(
@@ -387,8 +477,8 @@ module.exports = {
         _('Lobbies'),
         'JsPlatform/Extensions/multiplayer.svg'
       )
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -412,8 +502,8 @@ module.exports = {
         _('Lobbies'),
         'JsPlatform/Extensions/multiplayer.svg'
       )
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -442,8 +532,8 @@ module.exports = {
         false
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -465,8 +555,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -494,8 +584,8 @@ module.exports = {
         false
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -517,8 +607,8 @@ module.exports = {
         'JsPlatform/Extensions/multiplayer.svg'
       )
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -547,8 +637,8 @@ module.exports = {
         'number',
         gd.ParameterOptions.makeNewOptions().setDescription(_('Player number'))
       )
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -579,8 +669,8 @@ module.exports = {
       .addParameter('variable', _('Variable'), '', false)
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -610,8 +700,8 @@ module.exports = {
       .addParameter('variable', _('Variable'), '', false)
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -641,8 +731,8 @@ module.exports = {
       .addParameter('variable', _('Variable'), '', false)
       .setHelpPath('/all-features/multiplayer')
       .getCodeExtraInformation()
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )
@@ -747,8 +837,8 @@ module.exports = {
         multiplayerObjectBehavior,
         sharedData
       )
-      .setIncludeFile('Extensions/P2P/A_peer.js')
-      .addIncludeFile('Extensions/P2P/B_p2ptools.js')
+      .setIncludeFile('Extensions/Multiplayer/peer.js')
+      .addIncludeFile('Extensions/Multiplayer/peerJsHelper.js')
       .addIncludeFile(
         'Extensions/PlayerAuthentication/playerauthenticationcomponents.js'
       )

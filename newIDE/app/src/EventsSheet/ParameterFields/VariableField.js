@@ -34,23 +34,30 @@ import VariableStructureIcon from '../../VariablesList/Icons/VariableStructureIc
 import UnknownTypeIcon from '../../UI/CustomSvgIcons/Cross';
 import { type EnumeratedVariable } from './EnumerateVariables';
 import { LineStackLayout } from '../../UI/Layout';
-import GlobalIcon from '../../UI/CustomSvgIcons/Publish';
-import SceneIcon from '../../UI/CustomSvgIcons/Scene';
-import ObjectIcon from '../../UI/CustomSvgIcons/Object';
-import LocalIcon from '../../UI/CustomSvgIcons/ExternalEvents';
+import GlobalVariableIcon from '../../UI/CustomSvgIcons/GlobalVariable';
+import SceneVariableIcon from '../../UI/CustomSvgIcons/SceneVariable';
+import ObjectVariableIcon from '../../UI/CustomSvgIcons/ObjectVariable';
+import LocalVariableIcon from '../../UI/CustomSvgIcons/LocalVariable';
 import { ProjectScopedContainersAccessor } from '../../InstructionOrExpression/EventsScope.flow';
+import Link from '../../UI/Link';
+import Add from '../../UI/CustomSvgIcons/Add';
 
 const gd: libGDevelop = global.gd;
+
+export type VariableDialogOpeningProps = {
+  variableName: string,
+  shouldCreate: boolean,
+};
 
 type Props = {
   ...ParameterFieldProps,
   variablesContainers: Array<gdVariablesContainer>,
   enumerateVariables: () => Array<EnumeratedVariable>,
   forceDeclaration?: boolean,
-  onOpenDialog: ?() => void,
+  onOpenDialog: (VariableDialogOpeningProps => void) | null,
 };
 
-type VariableNameQuickAnalyzeResult = 0 | 1 | 2 | 3 | 4;
+type VariableNameQuickAnalyzeResult = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type VariableFieldInterface = {|
   ...ParameterFieldInterface,
@@ -63,6 +70,7 @@ export const VariableNameQuickAnalyzeResults = {
   WRONG_SPACE: 2,
   WRONG_EXPRESSION: 3,
   UNDECLARED_VARIABLE: 4,
+  NAME_COLLISION_WITH_OBJECT: 5,
 };
 
 export const getRootVariableName = (name: string): string => {
@@ -85,7 +93,8 @@ export const getRootVariableName = (name: string): string => {
 // selector that offers the variables in the scope).
 export const quicklyAnalyzeVariableName = (
   name: string,
-  variablesContainers?: Array<gdVariablesContainer>
+  variablesContainers?: Array<gdVariablesContainer>,
+  projectScopedContainersAccessor?: ProjectScopedContainersAccessor
 ): VariableNameQuickAnalyzeResult => {
   if (!name) return VariableNameQuickAnalyzeResults.OK;
 
@@ -110,11 +119,22 @@ export const quicklyAnalyzeVariableName = (
     }
   }
 
+  const rootVariableName = getRootVariableName(name);
+  if (
+    projectScopedContainersAccessor &&
+    projectScopedContainersAccessor
+      .get()
+      .getObjectsContainersList()
+      .hasObjectOrGroupNamed(rootVariableName)
+  ) {
+    return VariableNameQuickAnalyzeResults.NAME_COLLISION_WITH_OBJECT;
+  }
+
   // Check at least the name of the root variable, it's the best we can do.
   if (
     variablesContainers &&
     !variablesContainers.some(variablesContainer =>
-      variablesContainer.has(getRootVariableName(name))
+      variablesContainer.has(rootVariableName)
     )
   ) {
     return VariableNameQuickAnalyzeResults.UNDECLARED_VARIABLE;
@@ -128,14 +148,14 @@ export const getVariableSourceIcon = (
   switch (variableSourceType) {
     case gd.VariablesContainer.Global:
     case gd.VariablesContainer.ExtensionGlobal:
-      return GlobalIcon;
+      return GlobalVariableIcon;
     case gd.VariablesContainer.Scene:
     case gd.VariablesContainer.ExtensionScene:
-      return SceneIcon;
+      return SceneVariableIcon;
     case gd.VariablesContainer.Object:
-      return ObjectIcon;
+      return ObjectVariableIcon;
     case gd.VariablesContainer.Local:
-      return LocalIcon;
+      return LocalVariableIcon;
     default:
       return UnknownTypeIcon;
   }
@@ -234,13 +254,39 @@ export default React.forwardRef<Props, VariableFieldInterface>(
       [updateAutocompletions]
     );
 
+    const openVariableEditor = React.useCallback(
+      () => {
+        if (!onOpenDialog) {
+          return;
+        }
+        // Access to the input directly because the value
+        // may not have been sent to onChange yet.
+        const fieldCurrentValue = field.current
+          ? field.current.getInputValue()
+          : value;
+        const isRootVariableDeclared =
+          variablesContainers &&
+          variablesContainers.some(variablesContainer =>
+            variablesContainer.has(getRootVariableName(fieldCurrentValue))
+          );
+
+        onChange(fieldCurrentValue);
+        onOpenDialog({
+          variableName: fieldCurrentValue,
+          shouldCreate: !isRootVariableDeclared,
+        });
+      },
+      [onChange, onOpenDialog, value, variablesContainers]
+    );
+
     const description = parameterMetadata
       ? parameterMetadata.getDescription()
       : undefined;
 
     const quicklyAnalysisResult = quicklyAnalyzeVariableName(
       value,
-      variablesContainers
+      variablesContainers,
+      projectScopedContainersAccessor
     );
 
     const errorText =
@@ -266,7 +312,17 @@ export default React.forwardRef<Props, VariableFieldInterface>(
         quicklyAnalysisResult ===
           VariableNameQuickAnalyzeResults.UNDECLARED_VARIABLE ? (
         <Trans>
-          This variable is not declared. Use the *variables editor* to add it.
+          This variable does not exist.{' '}
+          <Link onClick={openVariableEditor} href="#">
+            Click to add it.
+          </Link>
+        </Trans>
+      ) : forceDeclaration &&
+        quicklyAnalysisResult ===
+          VariableNameQuickAnalyzeResults.NAME_COLLISION_WITH_OBJECT ? (
+        <Trans>
+          This variable has the same name as an object. Consider renaming one or
+          the other.
         </Trans>
       ) : null;
     const warningTranslatableText =
@@ -274,6 +330,10 @@ export default React.forwardRef<Props, VariableFieldInterface>(
       quicklyAnalysisResult ===
         VariableNameQuickAnalyzeResults.UNDECLARED_VARIABLE
         ? t`This variable is not declared. It's recommended to use the *variables editor* to add it.`
+        : !forceDeclaration &&
+          quicklyAnalysisResult ===
+            VariableNameQuickAnalyzeResults.NAME_COLLISION_WITH_OBJECT
+        ? t`This variable has the same name as an object. Consider renaming one or the other.`
         : null;
 
     const isSwitchableInstruction =
@@ -326,7 +386,8 @@ export default React.forwardRef<Props, VariableFieldInterface>(
                           translatableValue: t`Add or edit variables...`,
                           text: '',
                           value: '',
-                          onClick: onOpenDialog,
+                          renderIcon: () => <Add />,
+                          onClick: openVariableEditor,
                         }
                       : null,
                   ].filter(Boolean)}
@@ -342,7 +403,14 @@ export default React.forwardRef<Props, VariableFieldInterface>(
                     disabled={!onOpenDialog}
                     primary
                     style={style}
-                    onClick={onOpenDialog}
+                    onClick={() => {
+                      if (onOpenDialog) {
+                        onOpenDialog({
+                          variableName: value,
+                          shouldCreate: false,
+                        });
+                      }
+                    }}
                   />
                 ) : null
               }
