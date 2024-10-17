@@ -39,6 +39,7 @@ import {
   closeExternalLayoutTabs,
   closeExternalEventsTabs,
   closeEventsFunctionsExtensionTabs,
+  closeCustomObjectTab,
   saveUiSettings,
   type EditorTabsState,
   type EditorTab,
@@ -1474,6 +1475,7 @@ const MainFrame = (props: Props) => {
       oldName
     );
 
+    // TODO Replace the tabs instead on closing them.
     setState(state => ({
       ...state,
       editorTabs: closeEventsFunctionsExtensionTabs(state.editorTabs, oldName),
@@ -1483,6 +1485,36 @@ const MainFrame = (props: Props) => {
       );
       _onProjectItemModified();
     });
+  };
+
+  const onRenamedEventsBasedObject = (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    oldName: string,
+    newName: string
+  ) => {
+    // TODO Replace the tabs instead on closing them.
+    setState(state => ({
+      ...state,
+      editorTabs: closeCustomObjectTab(
+        state.editorTabs,
+        eventsFunctionsExtension.getName(),
+        oldName
+      ),
+    }));
+  };
+
+  const onDeletedEventsBasedObject = (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    name: string
+  ) => {
+    setState(state => ({
+      ...state,
+      editorTabs: closeCustomObjectTab(
+        state.editorTabs,
+        eventsFunctionsExtension.getName(),
+        name
+      ),
+    }));
   };
 
   const setPreviewedLayout = (
@@ -3561,6 +3593,8 @@ const MainFrame = (props: Props) => {
                     onCreateEventsFunction,
                     openInstructionOrExpression,
                     onOpenCustomObjectEditor: openCustomObjectEditor,
+                    onRenamedEventsBasedObject: onRenamedEventsBasedObject,
+                    onDeletedEventsBasedObject: onDeletedEventsBasedObject,
                     openObjectEvents,
                     unsavedChanges: unsavedChanges,
                     canOpen: !!props.storageProviders.filter(
@@ -3573,6 +3607,7 @@ const MainFrame = (props: Props) => {
                     },
                     onOpenProjectManager: () => openProjectManager(true),
                     askToCloseProject,
+                    closeProject,
                     onOpenExampleStore: openExampleStoreDialog,
                     onSelectExampleShortHeader: onSelectExampleShortHeader,
                     onCreateProjectFromExample: createProjectFromExample,

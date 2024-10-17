@@ -35,6 +35,8 @@ export const Default = () => (
         initiallyFocusedObjectName={null}
         onCreateEventsFunction={action('on create events function')}
         onOpenCustomObjectEditor={action('onOpenCustomObjectEditor')}
+        onRenamedEventsBasedObject={action('onRenamedEventsBasedObject')}
+        onDeletedEventsBasedObject={action('onDeletedEventsBasedObject')}
         onEventsBasedObjectChildrenEdited={action(
           'onEventsBasedObjectChildrenEdited'
         )}
@@ -66,6 +68,8 @@ export const WithObjectEditor = () => {
             initiallyFocusedObjectName={null}
             onCreateEventsFunction={action('on create events function')}
             onOpenCustomObjectEditor={action('onOpenCustomObjectEditor')}
+            onRenamedEventsBasedObject={action('onRenamedEventsBasedObject')}
+            onDeletedEventsBasedObject={action('onDeletedEventsBasedObject')}
             onEventsBasedObjectChildrenEdited={action(
               'onEventsBasedObjectChildrenEdited'
             )}
