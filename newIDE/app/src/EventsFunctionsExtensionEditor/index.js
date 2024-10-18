@@ -78,6 +78,15 @@ type Props = {|
   onOpenCustomObjectEditor: gdEventsBasedObject => void,
   hotReloadPreviewButtonProps: HotReloadPreviewButtonProps,
   onEventsBasedObjectChildrenEdited: () => void,
+  onRenamedEventsBasedObject: (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    oldName: string,
+    newName: string
+  ) => void,
+  onDeletedEventsBasedObject: (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    name: string
+  ) => void,
 |};
 
 type State = {|
@@ -667,7 +676,12 @@ export default class EventsFunctionsExtensionEditor extends React.Component<
     newName: string,
     done: boolean => void
   ) => {
-    const { project, eventsFunctionsExtension } = this.props;
+    const {
+      project,
+      eventsFunctionsExtension,
+      onRenamedEventsBasedObject,
+    } = this.props;
+    const oldName = eventsBasedObject.getName();
     const safeAndUniqueNewName = newNameGenerator(
       gd.Project.getSafeName(newName),
       tentativeNewName => {
@@ -690,6 +704,11 @@ export default class EventsFunctionsExtensionEditor extends React.Component<
     eventsBasedObject.setName(safeAndUniqueNewName);
 
     done(true);
+    onRenamedEventsBasedObject(
+      eventsFunctionsExtension,
+      oldName,
+      safeAndUniqueNewName
+    );
   };
 
   _onEventsBasedBehaviorPasted = (
@@ -738,6 +757,10 @@ export default class EventsFunctionsExtensionEditor extends React.Component<
         sourceEventsBasedObjectName
       );
     }
+    // Some custom object instances may target the pasted event-based object name.
+    // It can happen when an event-based object is deleted and another one is
+    // pasted to replace it.
+    this.props.onEventsBasedObjectChildrenEdited();
   };
 
   _onEventsBasedBehaviorRenamed = () => {
@@ -770,6 +793,10 @@ export default class EventsFunctionsExtensionEditor extends React.Component<
     if (this.state.selectedEventsFunction) {
       this._updateProjectScopedContainer();
     }
+    // Some custom object instances may target the new event-based object name.
+    // It can happen when an event-based object is deleted and another one is
+    // renamed to replace it.
+    this.props.onEventsBasedObjectChildrenEdited();
   };
 
   _onDeleteEventsBasedBehavior = (
@@ -798,6 +825,17 @@ export default class EventsFunctionsExtensionEditor extends React.Component<
     }
 
     cb(true);
+
+    const {
+      eventsFunctionsExtension,
+      onDeletedEventsBasedObject,
+      onEventsBasedObjectChildrenEdited,
+    } = this.props;
+    onDeletedEventsBasedObject(
+      eventsFunctionsExtension,
+      eventsBasedObject.getName()
+    );
+    onEventsBasedObjectChildrenEdited();
   };
 
   _onCloseExtensionFunctionSelectorDialog = (

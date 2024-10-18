@@ -76,6 +76,15 @@ export type RenderEditorContainerProps = {|
       | 'extension-events-editor'
       | 'external-events-editor'
   ) => void,
+  onRenamedEventsBasedObject: (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    oldName: string,
+    newName: string
+  ) => void,
+  onDeletedEventsBasedObject: (
+    eventsFunctionsExtension: gdEventsFunctionsExtension,
+    name: string
+  ) => void,
 
   // Project opening
   canOpen: boolean,
@@ -83,6 +92,7 @@ export type RenderEditorContainerProps = {|
   onOpenRecentFile: (file: FileMetadataAndStorageProviderName) => Promise<void>,
   onOpenProjectManager: () => void,
   askToCloseProject: () => Promise<boolean>,
+  closeProject: () => Promise<void>,
 
   // Other dialogs opening:
   onOpenExampleStore: () => void,

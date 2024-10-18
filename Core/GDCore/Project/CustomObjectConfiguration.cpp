@@ -72,7 +72,7 @@ gd::ObjectConfiguration &CustomObjectConfiguration::GetChildObjectConfiguration(
   }
 
   if (!eventsBasedObject->GetObjects().HasObjectNamed(objectName)) {
-    gd::LogError("Tried to get the configuration of a child-object:" + objectName
+    gd::LogError("Tried to get the configuration of a child-object: " + objectName
                 + " that doesn't exist in the event-based object: " + GetType());
     return badObjectConfiguration;
   }
@@ -202,8 +202,8 @@ void CustomObjectConfiguration::ExposeResources(gd::ArbitraryResourceWorker& wor
 
   for (auto& property : properties) {
     const String& propertyName = property.first;
-    const gd::PropertyDescriptor& propertyDescriptor = property.second;
-    if (propertyDescriptor.GetType() == "resource") {
+    const gd::PropertyDescriptor &propertyDescriptor = property.second;
+    if (propertyDescriptor.GetType().LowerCase() == "resource") {
       auto& extraInfo = propertyDescriptor.GetExtraInfo();
       const gd::String& resourceType = extraInfo.empty() ? "" : extraInfo[0];
       const gd::String& oldPropertyValue = propertyDescriptor.GetValue();
