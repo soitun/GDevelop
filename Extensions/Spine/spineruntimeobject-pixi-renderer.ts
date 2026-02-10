@@ -322,7 +322,6 @@ namespace gdjs {
     }
 
     setSkin(skinName: string): void {
- 
       if (!isSpine(this._rendererObject)) return;
 
       const skeleton = this._rendererObject.skeleton;

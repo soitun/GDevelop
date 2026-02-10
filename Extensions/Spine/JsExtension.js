@@ -516,7 +516,7 @@ module.exports = {
 
               // Apply the default skin if configured.
               const skinName = object.getSkinName();
-              if (skinName) {
+              if (skinName && this._spine) {
                 try {
                   this._spine.skeleton.setSkinByName(skinName);
                   this._spine.skeleton.setSlotsToSetupPose();
