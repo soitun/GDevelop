@@ -96,7 +96,15 @@ ${actions}`,
     };
   },
   'BuiltinCommonInstructions::Comment': ({ event, padding }) => {
-    return { content: `${padding}(comment - content is not displayed)` };
+    const commentEvent = gd.asCommentEvent(event);
+    const fullText = commentEvent.getComment();
+    const maxLength = 400;
+    const text =
+      fullText.length > maxLength
+        ? fullText.slice(0, maxLength) +
+          `[cut - ${fullText.length - maxLength} more characters]`
+        : fullText;
+    return { content: `${padding}${text}` };
   },
   'BuiltinCommonInstructions::While': ({ event, padding }) => {
     const whileEvent = gd.asWhileEvent(event);
@@ -280,16 +288,15 @@ const renderEventAsText = ({
   eventIndex,
   padding,
   eventPath,
+  isAncestorDisabled,
 }: {|
   event: gdBaseEvent,
   eventsList: gdEventsList,
   eventIndex: number,
   padding: string,
   eventPath: string,
+  isAncestorDisabled: boolean,
 |}) => {
-  const isDisabled = event.isDisabled();
-  if (isDisabled) return `${padding}(This event is disabled - ignored)`;
-
   const localVariablesText =
     event.canHaveVariables() && event.hasVariables()
       ? renderLocalVariablesAsText({
@@ -324,6 +331,7 @@ const renderEventAsText = ({
       eventsList: event.getSubEvents(),
       parentPath: eventPath,
       padding: padding + ' ',
+      isAncestorDisabled: isAncestorDisabled || event.isDisabled(),
     });
   }
 
@@ -334,10 +342,12 @@ export const renderEventsAsText = ({
   eventsList,
   parentPath,
   padding,
+  isAncestorDisabled = false,
 }: {|
   eventsList: gdEventsList,
   parentPath: string,
   padding: string,
+  isAncestorDisabled?: boolean,
 |}): string => {
   return mapFor(0, eventsList.getEventsCount(), i => {
     const event = eventsList.getEventAt(i);
@@ -349,6 +359,7 @@ export const renderEventsAsText = ({
       eventIndex: i,
       eventPath,
       padding: padding + ' ',
+      isAncestorDisabled,
     });
 
     let elseOfAttribute = '';
@@ -362,7 +373,29 @@ export const renderEventsAsText = ({
       elseOfAttribute = ` else-of="event-${previousEventPath}"`;
     }
 
-    return `${padding}<event-${eventPath}${elseOfAttribute}>
+    const eventTypeToAttribute: { [string]: string } = {
+      'BuiltinCommonInstructions::Comment': 'comment',
+      'BuiltinCommonInstructions::While': 'while',
+      'BuiltinCommonInstructions::Link': 'link',
+      'BuiltinCommonInstructions::Group': 'group',
+      'BuiltinCommonInstructions::ForEachChildVariable':
+        'for-each-child-variable',
+      'BuiltinCommonInstructions::ForEach': 'for-each',
+      'BuiltinCommonInstructions::Repeat': 'repeat',
+    };
+    const typeAttributeValue = eventTypeToAttribute[event.getType()];
+    const typeAttribute = typeAttributeValue
+      ? ` type="${typeAttributeValue}"`
+      : '';
+
+    let disabledAttribute = '';
+    if (event.isDisabled()) {
+      disabledAttribute = ' disabled="true"';
+    } else if (isAncestorDisabled) {
+      disabledAttribute = ' disabled-because-of-ancestor="true"';
+    }
+
+    return `${padding}<event-${eventPath}${elseOfAttribute}${typeAttribute}${disabledAttribute}>
 ${eventAndSubEventsText}
 ${padding}</event-${eventPath}>`;
   }).join('\n');

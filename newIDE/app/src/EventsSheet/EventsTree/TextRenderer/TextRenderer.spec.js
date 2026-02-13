@@ -9,6 +9,7 @@ describe('EventsTree/TextRenderer', () => {
   it('renders events as text', () => {
     const { project } = makeTestProject(gd);
     try {
+      const longCommentText = 'A'.repeat(450);
       const serializedEvents = [
         {
           type: 'BuiltinCommonInstructions::Standard',
@@ -331,6 +332,51 @@ describe('EventsTree/TextRenderer', () => {
             },
           ],
         },
+        // Disabled event with conditions/actions - should get disabled="true"
+        {
+          type: 'BuiltinCommonInstructions::Standard',
+          disabled: true,
+          conditions: [
+            {
+              type: { value: 'PlatformBehavior::IsFalling' },
+              parameters: [
+                'GroupOfSpriteObjectsWithBehaviors',
+                'PlatformerObject',
+              ],
+            },
+          ],
+          actions: [
+            {
+              type: { value: 'Show' },
+              parameters: ['GroupOfObjects', ''],
+            },
+          ],
+          events: [
+            // Sub-event of disabled parent - should get disabled-because-of-ancestor="true"
+            {
+              type: 'BuiltinCommonInstructions::Standard',
+              conditions: [],
+              actions: [
+                {
+                  type: { value: 'Show' },
+                  parameters: ['GroupOfObjects', ''],
+                },
+              ],
+            },
+          ],
+        },
+        // Short comment
+        {
+          type: 'BuiltinCommonInstructions::Comment',
+          comment: 'This is a short comment',
+          color: { r: 255, g: 230, b: 109, textR: 0, textG: 0, textB: 0 },
+        },
+        // Long comment (>400 chars) - should be truncated
+        {
+          type: 'BuiltinCommonInstructions::Comment',
+          comment: longCommentText,
+          color: { r: 255, g: 230, b: 109, textR: 0, textG: 0, textB: 0 },
+        },
       ];
 
       const eventsList = new gd.EventsList();
@@ -361,7 +407,7 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
            - Show GroupOfObjects
           </event-0.0>
-          <event-0.1>
+          <event-0.1 type=\\"repeat\\">
            Repeat \`1\` times these:
            Conditions:
             (no conditions)
@@ -392,7 +438,7 @@ describe('EventsTree/TextRenderer', () => {
            - Hide GroupOfObjects
            - Unknown or unsupported instruction
           </event-0.3>
-          <event-0.4>
+          <event-0.4 type=\\"while\\">
            While these conditions are true:
             - GroupOfSpriteObjectsWithBehaviors is falling
            Then do:
@@ -402,7 +448,7 @@ describe('EventsTree/TextRenderer', () => {
             - Change the number of the animation of MySpriteObject: = 1
             - Show GroupOfObjects
           </event-0.4>
-          <event-0.5>
+          <event-0.5 type=\\"repeat\\">
            Repeat \`3 + 4\` times these:
            Conditions:
             - GroupOfSpriteObjectsWithBehaviors is falling
@@ -410,7 +456,7 @@ describe('EventsTree/TextRenderer', () => {
             - Change the number of the animation of MySpriteObject: = 1
             - Show GroupOfObjects
           </event-0.5>
-          <event-0.6>
+          <event-0.6 type=\\"group\\">
            Group called \\"My super group\\":
            Sub-events:
             <event-0.6.0>
@@ -458,7 +504,26 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
            - Hide GroupOfObjects
           </event-0.10>
-        </event-0>"
+        </event-0>
+        <event-1 disabled=\\"true\\">
+         Conditions:
+         - GroupOfSpriteObjectsWithBehaviors is falling
+         Actions:
+         - Show GroupOfObjects
+         Sub-events:
+          <event-1.0 disabled-because-of-ancestor=\\"true\\">
+           Conditions:
+           (no conditions)
+           Actions:
+           - Show GroupOfObjects
+          </event-1.0>
+        </event-1>
+        <event-2 type=\\"comment\\">
+         This is a short comment
+        </event-2>
+        <event-3 type=\\"comment\\">
+         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA[cut - 50 more characters]
+        </event-3>"
       `);
     } finally {
       project.delete();
