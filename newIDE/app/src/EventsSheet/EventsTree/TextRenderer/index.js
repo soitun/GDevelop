@@ -1,5 +1,6 @@
 // @flow
 import { mapFor, mapVector } from '../../../Utils/MapFor';
+import { isElseEventValid } from '../helpers';
 
 const gd: libGDevelop = global.gd;
 
@@ -62,11 +63,17 @@ const renderInstructionsAsText = ({
   }).join('\n');
 };
 
+type EventTextRendererResult = {|
+  prefix?: string,
+  content: string,
+|};
+
 const eventsTextRenderers: {
   [string]: ({|
     event: gdBaseEvent,
     padding: string,
-  |}) => string,
+    isValidElseEvent: boolean,
+  |}) => EventTextRendererResult,
 } = {
   'BuiltinCommonInstructions::Standard': ({ event, padding }) => {
     const standardEvent = gd.asStandardEvent(event);
@@ -81,13 +88,15 @@ const eventsTextRenderers: {
       areConditions: false,
     });
 
-    return `${padding}Conditions:
+    return {
+      content: `${padding}Conditions:
 ${conditions}
 ${padding}Actions:
-${actions}`;
+${actions}`,
+    };
   },
   'BuiltinCommonInstructions::Comment': ({ event, padding }) => {
-    return `${padding}(comment - content is not displayed)`;
+    return { content: `${padding}(comment - content is not displayed)` };
   },
   'BuiltinCommonInstructions::While': ({ event, padding }) => {
     const whileEvent = gd.asWhileEvent(event);
@@ -107,13 +116,15 @@ ${actions}`;
       areConditions: false,
     });
 
-    return `${padding}While these conditions are true:
+    return {
+      content: `${padding}While these conditions are true:
 ${whileConditions}
 ${padding}Then do:
 ${padding}Conditions:
 ${conditions}
 ${padding}Actions:
-${actions}`;
+${actions}`,
+    };
   },
   'BuiltinCommonInstructions::Repeat': ({ event, padding }) => {
     const repeatEvent = gd.asRepeatEvent(event);
@@ -128,13 +139,15 @@ ${actions}`;
       areConditions: false,
     });
 
-    return `${padding}Repeat \`${repeatEvent
-      .getRepeatExpression()
-      .getPlainString()}\` times these:
+    return {
+      content: `${padding}Repeat \`${repeatEvent
+        .getRepeatExpression()
+        .getPlainString()}\` times these:
 ${padding}Conditions:
 ${conditions}
 ${padding}Actions:
-${actions}`;
+${actions}`,
+    };
   },
   'BuiltinCommonInstructions::ForEach': ({ event, padding }) => {
     const forEachEvent = gd.asForEachEvent(event);
@@ -149,11 +162,13 @@ ${actions}`;
       areConditions: false,
     });
 
-    return `${padding}Repeat these separately for each instance of ${forEachEvent.getObjectToPick()}:
+    return {
+      content: `${padding}Repeat these separately for each instance of ${forEachEvent.getObjectToPick()}:
 ${padding}Conditions:
 ${conditions}
 ${padding}Actions:
-${actions}`;
+${actions}`,
+    };
   },
   'BuiltinCommonInstructions::ForEachChildVariable': ({ event, padding }) => {
     const forEachChildVariableEvent = gd.asForEachChildVariableEvent(event);
@@ -171,21 +186,50 @@ ${actions}`;
       areConditions: false,
     });
 
-    return `${padding}For each child in \`${iterableName ||
-      '(no variable chosen yet)'}\`, store the child in variable \`${valueIteratorName ||
-      '(ignored)'}\`, the child name in \`${keyIteratorName ||
-      '(ignored)'}\` and do:
+    return {
+      content: `${padding}For each child in \`${iterableName ||
+        '(no variable chosen yet)'}\`, store the child in variable \`${valueIteratorName ||
+        '(ignored)'}\`, the child name in \`${keyIteratorName ||
+        '(ignored)'}\` and do:
 ${padding}Conditions:
 ${padding}${conditions}
 ${padding}Actions:
-${padding}${actions}`;
+${padding}${actions}`,
+    };
   },
   'BuiltinCommonInstructions::Group': ({ event, padding }) => {
     const groupEvent = gd.asGroupEvent(event);
-    return `${padding}Group called "${groupEvent.getName()}":`;
+    return { content: `${padding}Group called "${groupEvent.getName()}":` };
+  },
+  'BuiltinCommonInstructions::Else': ({ event, padding, isValidElseEvent }) => {
+    const elseEvent = gd.asElseEvent(event);
+    const hasConditions = elseEvent.getConditions().size() > 0;
+    const elseLabel = hasConditions ? 'Else if' : 'Else';
+
+    const conditions = renderInstructionsAsText({
+      instructionsList: elseEvent.getConditions(),
+      padding: padding,
+      areConditions: true,
+    });
+    const actions = renderInstructionsAsText({
+      instructionsList: elseEvent.getActions(),
+      padding: padding,
+      areConditions: false,
+    });
+
+    const prefix = isValidElseEvent
+      ? `${padding}${elseLabel}`
+      : `${padding}~~${elseLabel}~~ (Else is ignored because not following a standard event)`;
+
+    return {
+      prefix,
+      content: `${padding}Conditions:\n${conditions}\n${padding}Actions:\n${actions}`,
+    };
   },
   'BuiltinCommonInstructions::Link': ({ event, padding }) => {
-    return `${padding}(link to events in events sheet called "${event.getTarget()}")`;
+    return {
+      content: `${padding}(link to events in events sheet called "${event.getTarget()}")`,
+    };
   },
 };
 
@@ -232,10 +276,14 @@ const renderLocalVariablesAsText = ({
 
 const renderEventAsText = ({
   event,
+  eventsList,
+  eventIndex,
   padding,
   eventPath,
 }: {|
   event: gdBaseEvent,
+  eventsList: gdEventsList,
+  eventIndex: number,
   padding: string,
   eventPath: string,
 |}) => {
@@ -251,11 +299,24 @@ const renderEventAsText = ({
       : '';
 
   const textRenderer = eventsTextRenderers[event.getType()];
-  const eventText = textRenderer
-    ? [localVariablesText, textRenderer({ event, padding })]
-        .filter(Boolean)
-        .join('\n\n')
-    : `${padding}(This event is unknown/unsupported - ignored)`;
+  if (!textRenderer) {
+    return `${padding}(This event is unknown/unsupported - ignored)`;
+  }
+
+  const isValid =
+    event.getType() === 'BuiltinCommonInstructions::Else'
+      ? isElseEventValid(eventsList, eventIndex)
+      : false;
+
+  const { prefix, content } = textRenderer({
+    event,
+    padding,
+    isValidElseEvent: isValid,
+  });
+  const prefixAndVariables = [prefix, localVariablesText]
+    .filter(Boolean)
+    .join('\n');
+  const eventText = [prefixAndVariables, content].filter(Boolean).join('\n\n');
 
   let subEvents = '';
   if (event.canHaveSubEvents()) {
@@ -284,6 +345,8 @@ export const renderEventsAsText = ({
     const eventPath = (parentPath ? parentPath + '.' : '') + i;
     const eventAndSubEventsText = renderEventAsText({
       event,
+      eventsList,
+      eventIndex: i,
       eventPath,
       padding: padding + ' ',
     });

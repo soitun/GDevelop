@@ -1,3 +1,4 @@
+// @flow
 import { type SortableTreeNode } from './SortableEventsTree';
 
 export type MoveFunctionArguments = {
@@ -27,10 +28,11 @@ export const moveNodeAsSubEvent = ({
   targetNode,
   node,
 }: MoveFunctionArguments) => {
-  if (!targetNode.event || !node.event) return;
+  const event = node.event;
+  if (!targetNode.event || !event) return;
   moveEventToEventsList({
     targetEventsList: targetNode.event.getSubEvents(),
-    movingEvent: node.event,
+    movingEvent: event,
     initialEventsList: node.eventsList,
     toIndex: 0,
   });
@@ -105,4 +107,21 @@ export const getNodeAtPath = (
     path.slice(0, -1),
     treeData[path[path.length - 1]].children
   );
+};
+
+export const isElseEventValid = (
+  eventsList: gdEventsList,
+  elseEventIndex: number
+): boolean => {
+  for (let j = elseEventIndex - 1; j >= 0; j--) {
+    const previousEvent = eventsList.getEventAt(j);
+    if (!previousEvent.isDisabled() && previousEvent.isExecutable()) {
+      const previousEventType = previousEvent.getType();
+      return (
+        previousEventType === 'BuiltinCommonInstructions::Standard' ||
+        previousEventType === 'BuiltinCommonInstructions::Else'
+      );
+    }
+  }
+  return false;
 };

@@ -27,11 +27,45 @@ describe('EventsTree/TextRenderer', () => {
               parameters: ['MySpriteObject', '=', '1'],
             },
             {
-              type: { value: 'Montre' },
+              type: { value: 'Show' },
               parameters: ['GroupOfObjects', ''],
             },
           ],
           events: [
+            {
+              type: 'BuiltinCommonInstructions::Else',
+              conditions: [],
+              actions: [
+                {
+                  type: { value: 'Show' },
+                  parameters: ['GroupOfObjects', ''],
+                },
+              ],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Repeat',
+              repeatExpression: '1',
+              conditions: [],
+              actions: [],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Else',
+              conditions: [
+                {
+                  type: { value: 'PlatformBehavior::IsFalling' },
+                  parameters: [
+                    'GroupOfSpriteObjectsWithBehaviors',
+                    'PlatformerObject',
+                  ],
+                },
+              ],
+              actions: [
+                {
+                  type: { value: 'ChangeAnimation' },
+                  parameters: ['MySpriteObject', '=', '1'],
+                },
+              ],
+            },
             {
               type: 'BuiltinCommonInstructions::Standard',
               variables: [
@@ -171,7 +205,7 @@ describe('EventsTree/TextRenderer', () => {
                   parameters: ['MySpriteObject', '=', '1'],
                 },
                 {
-                  type: { value: 'Montre' },
+                  type: { value: 'Show' },
                   parameters: ['GroupOfObjects', ''],
                 },
               ],
@@ -194,7 +228,7 @@ describe('EventsTree/TextRenderer', () => {
                   parameters: ['MySpriteObject', '=', '1'],
                 },
                 {
-                  type: { value: 'Montre' },
+                  type: { value: 'Show' },
                   parameters: ['GroupOfObjects', ''],
                 },
               ],
@@ -220,7 +254,7 @@ describe('EventsTree/TextRenderer', () => {
                       parameters: ['MySpriteObject', '=', '1'],
                     },
                     {
-                      type: { value: 'Montre' },
+                      type: { value: 'Show' },
                       parameters: ['GroupOfObjects', ''],
                     },
                   ],
@@ -229,6 +263,69 @@ describe('EventsTree/TextRenderer', () => {
                   type: 'BuiltinCommonInstructions::Standard',
                   conditions: [],
                   actions: [],
+                },
+              ],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Standard',
+              conditions: [
+                {
+                  type: { value: 'PlatformBehavior::IsFalling' },
+                  parameters: [
+                    'GroupOfSpriteObjectsWithBehaviors',
+                    'PlatformerObject',
+                  ],
+                },
+              ],
+              actions: [
+                {
+                  type: { value: 'ChangeAnimation' },
+                  parameters: ['MySpriteObject', '=', '1'],
+                },
+              ],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Else',
+              conditions: [],
+              actions: [
+                {
+                  type: { value: 'Show' },
+                  parameters: ['GroupOfObjects', ''],
+                },
+              ],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Else',
+              conditions: [
+                {
+                  type: { value: 'PlatformBehavior::IsFalling' },
+                  parameters: [
+                    'GroupOfSpriteObjectsWithBehaviors',
+                    'PlatformerObject',
+                  ],
+                },
+              ],
+              actions: [
+                {
+                  type: { value: 'ChangeAnimation' },
+                  parameters: ['MySpriteObject', '=', '1'],
+                },
+              ],
+            },
+            {
+              type: 'BuiltinCommonInstructions::Else',
+              variables: [
+                {
+                  name: 'MyElseVar',
+                  type: 'number',
+                  value: '42',
+                },
+              ],
+              conditions: [],
+              actions: [
+                {
+                  type: { value: 'Cache' },
+                  parameters: ['GroupOfObjects', ''],
                 },
               ],
             },
@@ -257,6 +354,29 @@ describe('EventsTree/TextRenderer', () => {
          - Show GroupOfObjects
          Sub-events:
           <event-0.0>
+           ~~Else~~ (Else is ignored because not following a standard event)
+
+           Conditions:
+           (no conditions)
+           Actions:
+           - Show GroupOfObjects
+          </event-0.0>
+          <event-0.1>
+           Repeat \`1\` times these:
+           Conditions:
+            (no conditions)
+           Actions:
+            (no actions)
+          </event-0.1>
+          <event-0.2>
+           ~~Else if~~ (Else is ignored because not following a standard event)
+
+           Conditions:
+           - GroupOfSpriteObjectsWithBehaviors is falling
+           Actions:
+           - Change the number of the animation of MySpriteObject: = 1
+          </event-0.2>
+          <event-0.3>
            - Declare local variable \\"MyVariable\\" of type \\"number\\" with value \`1\`
            - Declare local variable \\"MyArray\\" of type \\"array\\" with value \`[-0.1,2.3,\\"three\\"]\`
            - Declare local variable \\"MyStructure\\" of type \\"structure\\" with value \`{\\"MyChild\\":1,\\"MyChild2\\":[1,2,\\"three\\",true]}\`
@@ -271,8 +391,8 @@ describe('EventsTree/TextRenderer', () => {
            - Change the number of the animation of MySpriteObject: = 1
            - Hide GroupOfObjects
            - Unknown or unsupported instruction
-          </event-0.0>
-          <event-0.1>
+          </event-0.3>
+          <event-0.4>
            While these conditions are true:
             - GroupOfSpriteObjectsWithBehaviors is falling
            Then do:
@@ -281,32 +401,63 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
             - Change the number of the animation of MySpriteObject: = 1
             - Show GroupOfObjects
-          </event-0.1>
-          <event-0.2>
+          </event-0.4>
+          <event-0.5>
            Repeat \`3 + 4\` times these:
            Conditions:
             - GroupOfSpriteObjectsWithBehaviors is falling
            Actions:
             - Change the number of the animation of MySpriteObject: = 1
             - Show GroupOfObjects
-          </event-0.2>
-          <event-0.3>
+          </event-0.5>
+          <event-0.6>
            Group called \\"My super group\\":
            Sub-events:
-            <event-0.3.0>
+            <event-0.6.0>
              Conditions:
              - GroupOfSpriteObjectsWithBehaviors is falling
              Actions:
              - Change the number of the animation of MySpriteObject: = 1
              - Show GroupOfObjects
-            </event-0.3.0>
-            <event-0.3.1>
+            </event-0.6.0>
+            <event-0.6.1>
              Conditions:
              (no conditions)
              Actions:
              (no actions)
-            </event-0.3.1>
-          </event-0.3>
+            </event-0.6.1>
+          </event-0.6>
+          <event-0.7>
+           Conditions:
+           - GroupOfSpriteObjectsWithBehaviors is falling
+           Actions:
+           - Change the number of the animation of MySpriteObject: = 1
+          </event-0.7>
+          <event-0.8>
+           Else
+
+           Conditions:
+           (no conditions)
+           Actions:
+           - Show GroupOfObjects
+          </event-0.8>
+          <event-0.9>
+           Else if
+
+           Conditions:
+           - GroupOfSpriteObjectsWithBehaviors is falling
+           Actions:
+           - Change the number of the animation of MySpriteObject: = 1
+          </event-0.9>
+          <event-0.10>
+           Else
+           - Declare local variable \\"MyElseVar\\" of type \\"number\\" with value \`42\`
+
+           Conditions:
+           (no conditions)
+           Actions:
+           - Hide GroupOfObjects
+          </event-0.10>
         </event-0>"
       `);
     } finally {
