@@ -1,6 +1,6 @@
 // @flow
 import { mapFor, mapVector } from '../../../Utils/MapFor';
-import { isElseEventValid } from '../helpers';
+import { isElseEventValid, getPreviousExecutableEventIndex } from '../helpers';
 
 const gd: libGDevelop = global.gd;
 
@@ -351,7 +351,18 @@ export const renderEventsAsText = ({
       padding: padding + ' ',
     });
 
-    return `${padding}<event-${eventPath}>
+    let elseOfAttribute = '';
+    if (
+      event.getType() === 'BuiltinCommonInstructions::Else' &&
+      isElseEventValid(eventsList, i)
+    ) {
+      const previousIndex = getPreviousExecutableEventIndex(eventsList, i);
+      const previousEventPath =
+        (parentPath ? parentPath + '.' : '') + previousIndex;
+      elseOfAttribute = ` else-of="event-${previousEventPath}"`;
+    }
+
+    return `${padding}<event-${eventPath}${elseOfAttribute}>
 ${eventAndSubEventsText}
 ${padding}</event-${eventPath}>`;
   }).join('\n');

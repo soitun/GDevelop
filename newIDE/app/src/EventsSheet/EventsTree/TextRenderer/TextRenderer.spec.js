@@ -433,7 +433,7 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
            - Change the number of the animation of MySpriteObject: = 1
           </event-0.7>
-          <event-0.8>
+          <event-0.8 else-of=\\"event-0.7\\">
            Else
 
            Conditions:
@@ -441,7 +441,7 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
            - Show GroupOfObjects
           </event-0.8>
-          <event-0.9>
+          <event-0.9 else-of=\\"event-0.8\\">
            Else if
 
            Conditions:
@@ -449,7 +449,7 @@ describe('EventsTree/TextRenderer', () => {
            Actions:
            - Change the number of the animation of MySpriteObject: = 1
           </event-0.9>
-          <event-0.10>
+          <event-0.10 else-of=\\"event-0.9\\">
            Else
            - Declare local variable \\"MyElseVar\\" of type \\"number\\" with value \`42\`
 

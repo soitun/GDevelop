@@ -109,19 +109,36 @@ export const getNodeAtPath = (
   );
 };
 
+/**
+ * Returns the index of the previous non-disabled, executable event
+ * in the list, or -1 if none is found.
+ */
+export const getPreviousExecutableEventIndex = (
+  eventsList: gdEventsList,
+  eventIndex: number
+): number => {
+  const startIndex = Math.min(eventIndex - 1, eventsList.getEventsCount() - 1);
+  for (let j = startIndex; j >= 0; j--) {
+    const previousEvent = eventsList.getEventAt(j);
+    if (!previousEvent.isDisabled() && previousEvent.isExecutable()) {
+      return j;
+    }
+  }
+  return -1;
+};
+
 export const isElseEventValid = (
   eventsList: gdEventsList,
   elseEventIndex: number
 ): boolean => {
-  for (let j = elseEventIndex - 1; j >= 0; j--) {
-    const previousEvent = eventsList.getEventAt(j);
-    if (!previousEvent.isDisabled() && previousEvent.isExecutable()) {
-      const previousEventType = previousEvent.getType();
-      return (
-        previousEventType === 'BuiltinCommonInstructions::Standard' ||
-        previousEventType === 'BuiltinCommonInstructions::Else'
-      );
-    }
-  }
-  return false;
+  const previousIndex = getPreviousExecutableEventIndex(
+    eventsList,
+    elseEventIndex
+  );
+  if (previousIndex === -1) return false;
+  const previousEventType = eventsList.getEventAt(previousIndex).getType();
+  return (
+    previousEventType === 'BuiltinCommonInstructions::Standard' ||
+    previousEventType === 'BuiltinCommonInstructions::Else'
+  );
 };
